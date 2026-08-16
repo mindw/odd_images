@@ -3,7 +3,7 @@
 
 services:
   redis-primary:
-    image: 569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/redis:8.8
+    image: ghcr.io/mindw/odd_images/redis:latest
     ports:
       - '6379'
     environment:
@@ -14,7 +14,7 @@ services:
       - 'redis_data:/bitnami/redis/data'
 
   redis-secondary:
-    image: 569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/redis:8.8
+    image: ghcr.io/mindw/odd_images/redis:latest
     ports:
       - '6379'
     depends_on:

@@ -10,49 +10,31 @@ Disclaimer: Redis is a registered trademark of Redis Ltd. Any rights therein are
 ### Updating to a new version:
 
 1. Pull image changes from [upstream](https://github.com/bitnami/containers/tree/main/bitnami/redis)
-2. backup image source files using: `AWS_PROFILE=shared_assets ./copy-image-sources-s3.sh`
-3. Build and push using `AWS_PROFILE=shared_assets ./redis-build-and-push.sh`
-4. Deploy on a dev cluster
-5. Once merged, promote tag as `latest` and VERSION latest :
-   ```
-   . current/debian-12/version.sh
-   # add "latest"
-   AWS_PROFILE=shared_assets ../add-tag-to-engageli-private-ecr-image.sh bitnami/redis ${REDIS_VERSION}
-   # add VERSION latest
-   AWS_PROFILE=shared_assets ../add-tag-to-engageli-private-ecr-image.sh bitnami/redis ${REDIS_VERSION} v${REDIS_APP_VERSION}
-   AWS_PROFILE=shared_assets ../add-tag-to-engageli-private-ecr-image.sh bitnami/redis ${REDIS_VERSION} v${REDIS_APP_VERSION%.*} 
-   ```
-6. Once merged, propagate image to `dev` and `prod` repos using `aws/misc/ecr.py`. 
-   ``` 
-   . current/debian-12/version.sh 
-   AWS_PROFILE=shared_assets ../../aws/misc/ecr.py ${REDIS_VERSION} --ci -s dev -d test -r bitnami/redis
-   # and to production once the PR is merged
-   AWS_PROFILE=shared_assets ../../aws/misc/ecr.py ${REDIS_VERSION} --ci -r bitnami/redis
-   ```
+2. Backup image source files using: `AWS_PROFILE=shared_assets ./copy-image-sources-s3.sh`
+3. Bump `current/debian-12/Dockerfile` to the new version
+4. Open a pull request — the `redis` GitHub Actions workflow builds the image for `linux/amd64` and `linux/arm64` to confirm it still builds. No image is pushed for pull requests.
+5. Once the PR is merged to `main`, the same workflow builds and pushes the image to GHCR, tagged as `VERSION`, `vAPP_VERSION`, `vMAJOR.MINOR`, and `latest` in one step. No manual promotion or dev/prod propagation is needed.
 
 ## TL;DR
 
 ```console
-docker run --name redis -e ALLOW_EMPTY_PASSWORD=yes 569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/redis:latest
+docker run --name redis -e ALLOW_EMPTY_PASSWORD=yes ghcr.io/mindw/odd_images/redis:latest
 ```
 
 
 ## Get this image
 
-The recommended way to get the Bitnami Redis Docker image is to pull the prebuilt image
-from the Engageli private ECR repository.
+The recommended way to get the Redis Docker image is to pull the prebuilt image
+from the Engageli GitHub Container Registry.
 
 ```console
-docker pull 569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/redis:latest
+docker pull ghcr.io/mindw/odd_images/redis:latest
 ```
-To use a specific version, you can pull a versioned tag. You can view the list of 
-available versions using `skopeo`:
-```
-skopeo list-tags docker://569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/redis | jq .Tags[] -r
-```
+To use a specific version, you can pull a versioned tag. You can view the list of
+available versions on the [package page](https://github.com/mindw/odd_images/pkgs/container/odd_images%2Fredis).
 
 ```console
-docker pull 569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/redis:[TAG]
+docker pull ghcr.io/mindw/odd_images/redis:[TAG]
 ```
 
 ## Using `docker-compose.yaml`
@@ -151,7 +133,7 @@ For security reasons, you may want to disable some commands. You can specify the
 Passing extra command-line flags to the redis service command is possible by adding them as arguments to *run.sh* script:
 
 ```console
-docker run --name redis -e ALLOW_EMPTY_PASSWORD=yes 569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/redis:latest /opt/bitnami/scripts/redis/run.sh --maxmemory 100mb
+docker run --name redis -e ALLOW_EMPTY_PASSWORD=yes ghcr.io/mindw/odd_images/redis:latest /opt/bitnami/scripts/redis/run.sh --maxmemory 100mb
 ```
 
 Alternatively, modify the [`docker-compose.yml`](https://github.com/bitnami/containers/blob/main/bitnami/redis/docker-compose.yml) file present in this repository:
@@ -193,7 +175,7 @@ Redis(R) offers different [options](https://redis.io/topics/persistence) when it
 Redis(R) offers [ACL](https://redis.io/topics/acl) since 6.0 which allows certain connections to be limited in terms of the commands that can be executed and the keys that can be accessed. We strongly recommend enabling ACL in production by specifying the `REDIS_ACLFILE`.
 
 ```console
-docker run -name redis -e REDIS_ACLFILE=/opt/bitnami/redis/mounted-etc/users.acl -v /path/to/users.acl:/opt/bitnami/redis/mounted-etc/users.acl 569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/redis:latest
+docker run -name redis -e REDIS_ACLFILE=/opt/bitnami/redis/mounted-etc/users.acl -v /path/to/users.acl:/opt/bitnami/redis/mounted-etc/users.acl ghcr.io/mindw/odd_images/redis:latest
 ```
 
 Alternatively, modify the [`docker-compose.yml`](https://github.com/bitnami/containers/blob/main/bitnami/redis/docker-compose.yml) file present in this repository:
@@ -248,7 +230,7 @@ docker run --name redis \
     -e ALLOW_EMPTY_PASSWORD=yes \
     -v /path/to/your_redis.conf:/opt/bitnami/redis/mounted-etc/redis.conf \
     -v /path/to/redis-data-persistence:/bitnami/redis/data \
-    569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/redis:latest
+    ghcr.io/mindw/odd_images/redis:latest
 ```
 
 Alternatively, modify the [`docker-compose.yml`](https://github.com/bitnami/containers/blob/main/bitnami/redis/docker-compose.yml) file present in this repository:
@@ -273,7 +255,7 @@ Instead of providing a custom `redis.conf`, you may also choose to provide only 
 docker run --name redis \
     -e ALLOW_EMPTY_PASSWORD=yes \
     -v /path/to/overrides.conf:/opt/bitnami/redis/mounted-etc/overrides.conf \
-    569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/redis:latest
+    ghcr.io/mindw/odd_images/redis:latest
 ```
 
 Alternatively, modify the [`docker-compose.yml`](https://github.com/bitnami/containers/blob/main/bitnami/redis/docker-compose.yml) file present in this repository:
