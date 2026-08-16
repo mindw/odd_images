@@ -11,6 +11,10 @@ on:
       - "images/redis/**"
       - ".github/workflows/redis.yml"
 
+concurrency:
+  group: redis-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
   packages: write
@@ -42,6 +46,29 @@ jobs:
             echo "${IMAGE}:latest"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
+
+      - name: Build amd64 image for smoke test
+        uses: docker/build-push-action@v6
+        with:
+          context: images/redis/current/debian-12
+          platforms: linux/amd64
+          load: true
+          tags: redis-smoke-test:local
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke test
+        run: |
+          docker run -d --name redis-smoke -e ALLOW_EMPTY_PASSWORD=yes redis-smoke-test:local
+          for i in $(seq 1 30); do
+            if docker exec redis-smoke redis-cli ping 2>/dev/null | grep -q PONG; then
+              echo "Redis responded to ping"
+              break
+            fi
+            sleep 1
+          done
+          docker exec redis-smoke redis-cli ping | grep -q PONG
+          docker rm -f redis-smoke
 
       - name: Log in to GHCR
         if: github.event_name == 'push'

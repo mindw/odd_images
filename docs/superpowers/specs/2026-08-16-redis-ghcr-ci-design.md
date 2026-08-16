@@ -126,6 +126,26 @@ No secret is needed for the Bitnami download URL — the Dockerfile's
 `DOWNLOADS_URL` ARG already has a public default, and the optional
 `--mount=type=secret` override is not required for this build.
 
+### Post-review addendum: concurrency and smoke test
+
+Added after the initial implementation, per the final whole-branch review
+and a follow-up decision from the user:
+
+- A top-level `concurrency: {group: redis-${{ github.ref }}, cancel-in-progress: true}`
+  block, so two merges to `main` in close succession can't race and leave a
+  non-deterministic image behind the `latest` tag.
+- Two new steps between "Resolve version and tags" and "Log in to GHCR":
+  build a `linux/amd64`-only image with `load: true`, run it, and poll
+  `redis-cli ping` for up to 30s expecting `PONG` before allowing the
+  workflow to proceed. These run unconditionally (both `pull_request` and
+  `push`), so a container that builds but crashes on startup is caught
+  before it can ever be tagged `latest` and pushed.
+- The final review also flagged that the README doesn't mention GHCR
+  packages defaulting to private (so a plain `docker pull` would fail with
+  `denied: denied` until the package is made public). The user explicitly
+  declined adding this caveat to the README — left as-is by decision, not
+  an oversight.
+
 ## README & reference rewrite
 
 `images/redis/README.md` currently has 40 occurrences of the ECR host /
