@@ -3,7 +3,7 @@
 
 services:
   rabbitmq:
-    image: 569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/rabbitmq-dev:v4.3
+    image: ghcr.io/mindw/odd_images/rabbitmq:latest
     ports:
       - '4369:4369'
       - '5551:5551'
