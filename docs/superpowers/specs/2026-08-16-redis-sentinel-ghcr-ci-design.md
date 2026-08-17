@@ -160,6 +160,21 @@ connection issues"), it does not fail `setup.sh` (which runs under
 it). So the smoke test can safely start the container with an
 unreachable/placeholder `REDIS_MASTER_HOST` and still expect a `PONG`.
 
+### Post-review correction: smoke test env var
+
+Added after the final whole-branch review found the smoke test container
+exiting within a second instead of ever answering `ping`: the note above
+about `REDIS_MASTER_HOST` not needing to resolve is correct but incomplete
+— it never mentions that Redis Sentinel's own startup validation
+(`redis_validate` in `libredissentinel.sh`) requires either
+`ALLOW_EMPTY_PASSWORD=yes` or a set `REDIS_SENTINEL_PASSWORD`, and exits
+`setup.sh` with status 1 if neither is present. That, not
+`REDIS_MASTER_HOST`, is why the original `docker run` command's container
+died immediately. `REDIS_MASTER_HOST` already defaults to `redis` and
+doesn't need to be passed explicitly at all — setting it is harmless but
+was never the fix. The workflow's `docker run` now passes both
+`-e ALLOW_EMPTY_PASSWORD=yes -e REDIS_MASTER_HOST=redis`.
+
 ## README changes
 
 `images/redis-sentinel/README.md` currently has no Engageli customization.

@@ -59,7 +59,7 @@ jobs:
 
       - name: Smoke test
         run: |
-          docker run -d --name redis-sentinel-smoke -e REDIS_MASTER_HOST=redis redis-sentinel-smoke-test:local
+          docker run -d --name redis-sentinel-smoke -e ALLOW_EMPTY_PASSWORD=yes -e REDIS_MASTER_HOST=redis redis-sentinel-smoke-test:local
           for i in $(seq 1 30); do
             if docker exec redis-sentinel-smoke redis-cli -p 26379 ping 2>/dev/null | grep -q PONG; then
               echo "Redis Sentinel responded to ping"
