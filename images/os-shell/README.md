@@ -12,48 +12,29 @@ not imply any affiliation or endorsement.
 ### Updating to a new version:
 
 1. Pull image changes from [upstream](https://github.com/bitnami/containers/tree/main/bitnami/os-shell)
-2. backup image source files:  `AWS_PROFILE=shared_assets ./copy-image-sources-s3.sh`
-3. Build and push using `AWS_PROFILE=shared_assets ./os-shell-12-build-and-push.sh`
-4. Deploy on a dev cluster
-5. Once merged, promote tag as `latest` and VERSION latest :
-   ```
-   . 12/debian-12/version.sh
-   # add "latest"
-   AWS_PROFILE=shared_assets ../add-tag-to-engageli-private-ecr-image.sh bitnami/os-shell ${OS_SHELL_VERSION}
-   # add VERSION latest
-   AWS_PROFILE=shared_assets ../add-tag-to-engageli-private-ecr-image.sh bitnami/os-shell ${OS_SHELL_VERSION} v${OS_SHELL_APP_VERSION} 
-   ```
-6. Once merged, propagate image to `test` and `prod` repos using `aws/misc/ecr.py`: 
-   ``` 
-   . 12/debian-12/version.sh 
-   AWS_PROFILE=shared_assets ../../aws/misc/ecr.py ${OS_SHELL_VERSION} --ci -s dev -d test -r bitnami/os-shell
-   # and to production once the PR is merged
-   AWS_PROFILE=shared_assets ../../aws/misc/ecr.py ${OS_SHELL_VERSION} --ci -r bitnami/os-shell
-   ```
+2. Bump `current/debian-12/Dockerfile` to the new version
+3. Open a pull request — the `os-shell` GitHub Actions workflow builds the image for `linux/amd64` and `linux/arm64` and runs a smoke test to confirm it still works. No image is pushed for pull requests.
+4. Once the PR is merged to `main`, the same workflow builds, smoke-tests, and pushes the image to GHCR, tagged as `VERSION`, `vAPP_VERSION`, `vMAJOR.MINOR`, and `latest` in one step.
 
 ## TL;DR
 
 ```console
-docker run -ti --rm --name os-shell 569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/os-shell-dev:latest
+docker run -ti --rm --name os-shell ghcr.io/mindw/odd_images/os-shell:latest
 ```
 
 ## Get this image
 
-The recommended way to get the Bitnami os-shell Docker Image is to pull the prebuilt image
-from the Engageli private ECR repository.
+The recommended way to get the os-shell Docker image is to pull the prebuilt image
+from the Engageli GitHub Container Registry.
 
 ```console
-docker pull 569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/os-shell-dev:latest
+docker pull ghcr.io/mindw/odd_images/os-shell:latest
 ```
-
-To use a specific version, you can pull a versioned tag. You can view the list of 
-available versions using `skopeo`:
-```
-skopeo list-tags docker://569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/os-shell-dev | jq .Tags[] -r
-```
+To use a specific version, you can pull a versioned tag. You can view the list of
+available versions on the [package page](https://github.com/mindw/odd_images/pkgs/container/odd_images%2Fos-shell).
 
 ```console
-docker pull 569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/os-shell:[TAG]
+docker pull ghcr.io/mindw/odd_images/os-shell:[TAG]
 ```
 
 If you wish, you can also build the image yourself by cloning the repository, changing to the directory containing the Dockerfile and executing the `docker build` command. Remember to replace the `APP`, `VERSION` and `OPERATING-SYSTEM` path placeholders in the example command below with the correct values.
@@ -71,7 +52,7 @@ docker build -t bitnami/APP:latest .
 To run commands inside this container you can use `docker run`, for example to execute `echo Hello world` you can follow the example below:
 
 ```console
-docker run --rm --name os-shell 569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/os-shell:latest echo hello world
+docker run --rm --name os-shell ghcr.io/mindw/odd_images/os-shell:latest echo hello world
 ```
 
 ### FIPS configuration in Bitnami Secure Images
