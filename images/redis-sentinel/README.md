@@ -5,10 +5,19 @@
 [Overview of Redis&reg; Sentinel](https://redis.io)
 Disclaimer: Redis is a registered trademark of Redis Ltd. Any rights therein are reserved to Redis Ltd. Any use by Bitnami is for referential purposes only and does not indicate any sponsorship, endorsement, or affiliation between Redis Ltd.
 
+## Engageli notes
+
+### Updating to a new version:
+
+1. Pull image changes from [upstream](https://github.com/bitnami/containers/tree/main/bitnami/redis-sentinel)
+2. Bump `current/debian-12/Dockerfile` to the new version
+3. Open a pull request — the `redis-sentinel` GitHub Actions workflow builds the image for `linux/amd64` and `linux/arm64` and runs a smoke test to confirm it still starts. No image is pushed for pull requests.
+4. Once the PR is merged to `main`, the same workflow builds, smoke-tests, and pushes the image to GHCR, tagged as `VERSION`, `vAPP_VERSION`, `vMAJOR.MINOR`, and `latest` in one step.
+
 ## TL;DR
 
 ```console
-docker run --name redis-sentinel -e REDIS_MASTER_HOST=redis bitnami/redis-sentinel:latest
+docker run --name redis-sentinel -e REDIS_MASTER_HOST=redis ghcr.io/mindw/odd_images/redis-sentinel:latest
 ```
 
 ## Why use Bitnami Secure Images?
@@ -38,7 +47,18 @@ Learn more about the Bitnami tagging policy and the difference between rolling t
 
 ## Get this image
 
-The Bitnami Redis&reg; Sentinel Docker image is only available to [Bitnami Secure Images](https://bitnami.com) customers.
+The recommended way to get the Redis Sentinel Docker image is to pull the prebuilt image
+from the Engageli GitHub Container Registry.
+
+```console
+docker pull ghcr.io/mindw/odd_images/redis-sentinel:latest
+```
+To use a specific version, you can pull a versioned tag. You can view the list of
+available versions on the [package page](https://github.com/mindw/odd_images/pkgs/container/odd_images%2Fredis-sentinel).
+
+```console
+docker pull ghcr.io/mindw/odd_images/redis-sentinel:[TAG]
+```
 
 ## Connecting to other containers
 
@@ -64,7 +84,7 @@ Use the `--network app-tier` argument to the `docker run` command to attach the 
 docker run -d --name redis-server \
     -e ALLOW_EMPTY_PASSWORD=yes \
     --network app-tier \
-    bitnami/redis:latest
+    ghcr.io/mindw/odd_images/redis:latest
 ```
 
 #### Step 3: Launch your Redis(R) Sentinel instance
@@ -75,7 +95,7 @@ Finally we create a new container instance to launch the Redis(R) client and con
 docker run -it --rm \
     -e REDIS_MASTER_HOST=redis-server \
     --network app-tier \
-    bitnami/redis-sentinel:latest
+    ghcr.io/mindw/odd_images/redis-sentinel:latest
 ```
 
 ## Configuration
@@ -157,7 +177,7 @@ When enabling TLS, conventional standard traffic is disabled by default. However
         -e REDIS_SENTINEL_TLS_KEY_FILE=/opt/bitnami/redis/certs/redis.key \
         -e REDIS_SENTINEL_TLS_CA_FILE=/opt/bitnami/redis/certs/redisCA.crt \
         bitnami/redis-cluster:latest
-        bitnami/redis-sentinel:latest
+        ghcr.io/mindw/odd_images/redis-sentinel:latest
     ```
 
 Alternatively, you may also provide with this configuration in your [custom](https://github.com/bitnami/containers/blob/main/bitnami/redis-sentinel#configuration-file) configuration file.
@@ -174,7 +194,7 @@ Run the Redis(R) Sentinel image, mounting a directory from your host.
 docker run --name redis-sentinel \
     -e REDIS_MASTER_HOST=redis \
     -v /path/to/redis-sentinel/persistence:/bitnami \
-    bitnami/redis-sentinel:latest
+    ghcr.io/mindw/odd_images/redis-sentinel:latest
 ```
 
 #### Step 2: Edit the configuration
