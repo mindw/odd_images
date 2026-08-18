@@ -12,30 +12,15 @@ Trademarks: This software listing is packaged by Bitnami. The respective tradema
 ### Updating to a new version:
 
 1. Pull image changes from [upstream](https://github.com/bitnami/containers/tree/main/bitnami/rabbitmq)
-2. backup image source files using: `AWS_PROFILE=shared_assets ./copy-image-sources-s3.sh`
-3. Build and push using `AWS_PROFILE=shared_assets ./rabbitmq-build-and-push.sh`
-4. Deploy on a dev cluster
-5. Once merged, promote tag as `latest` and VERSION latest :
-   ```
-   . current/debian-12/version.sh
-   # add "latest"
-   AWS_PROFILE=shared_assets ../add-tag-to-engageli-private-ecr-image.sh bitnami/rabbitmq ${RABBITMQ_VERSION}
-   # add VERSION latest
-   AWS_PROFILE=shared_assets ../add-tag-to-engageli-private-ecr-image.sh bitnami/rabbitmq ${RABBITMQ_VERSION} v${RABBITMQ_APP_VERSION}
-   AWS_PROFILE=shared_assets ../add-tag-to-engageli-private-ecr-image.sh bitnami/rabbitmq ${RABBITMQ_VERSION} v${RABBITMQ_APP_VERSION%.*} 
-   ```
-6. Once merged, propagate image to `dev` and `prod` repos using `aws/misc/ecr.py`.
-   ```
-   . current/debian-12/version.sh 
-   AWS_PROFILE=shared_assets ../../aws/misc/ecr.py ${RABBITMQ_VERSION} --ci -s dev -d test -r bitnami/rabbitmq
-   # and to production once the PR is merged
-   AWS_PROFILE=shared_assets ../../aws/misc/ecr.py ${RABBITMQ_VERSION} --ci -r bitnami/rabbitmq
-   ```
+2. Backup image source files using: `AWS_PROFILE=shared_assets ./copy-image-sources-s3.sh`
+3. Bump `current/debian-12/Dockerfile` to the new version
+4. Open a pull request — the `rabbitmq` GitHub Actions workflow builds the image for `linux/amd64` and `linux/arm64` and runs a smoke test to confirm it still starts. No image is pushed for pull requests.
+5. Once the PR is merged to `main`, the same workflow builds, smoke-tests, and pushes the image to GHCR, tagged as `VERSION`, `vAPP_VERSION`, `vMAJOR.MINOR`, and `latest` in one step.
 
 ## TL;DR
 
 ```console
-docker run -ti --rm --name rabbitmq 569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/rabbitmq:latest
+docker run -ti --rm --name rabbitmq ghcr.io/mindw/odd_images/rabbitmq:latest
 ```
 
 You can find the default credentials and available configuration options in the [Environment Variables](#environment-variables) section.
@@ -43,19 +28,16 @@ You can find the default credentials and available configuration options in the 
 ## Get this image
 
 The recommended way to get the Bitnami RabbitMQ Docker Image is to pull the prebuilt image
-from the Engageli private ECR repository.
+from the Engageli GitHub Container Registry.
 
 ```console
-docker pull 569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/rabbitmq:latest
+docker pull ghcr.io/mindw/odd_images/rabbitmq:latest
 ```
-To use a specific version, you can pull a versioned tag. You can view the list of 
-available versions using `skopeo`:
-```
-skopeo list-tags docker://569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/rabbitmq | jq .Tags[] -r
-```
+To use a specific version, you can pull a versioned tag. You can view the list of
+available versions on the [package page](https://github.com/mindw/odd_images/pkgs/container/odd_images%2Frabbitmq).
 
 ```console
-docker pull 569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/rabbitmq:[TAG]
+docker pull ghcr.io/mindw/odd_images/rabbitmq:[TAG]
 ```
 
 ## Persisting your application
@@ -89,7 +71,7 @@ Use the `--network app-tier` argument to the `docker run` command to attach the 
 ```console
 docker run -d --name rabbitmq-server \
     --network app-tier \
-    569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/rabbitmq:latest
+    ghcr.io/mindw/odd_images/rabbitmq:latest
 ```
 
 #### Step 3: Launch your RabbitMQ client instance
@@ -99,7 +81,7 @@ Finally we create a new container instance to launch the RabbitMQ client and con
 ```console
 docker run -it --rm \
     --network app-tier \
-    569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/rabbitmq:latest rabbitmqctl -n rabbit@rabbitmq-server status
+    ghcr.io/mindw/odd_images/rabbitmq:latest rabbitmqctl -n rabbit@rabbitmq-server status
 ```
 
 ### Using a Docker Compose file
@@ -115,7 +97,7 @@ networks:
 
 services:
   rabbitmq:
-    image: 569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/rabbitmq:latest
+    image: ghcr.io/mindw/odd_images/rabbitmq:latest
     networks:
       - app-tier
   myapp:
@@ -246,7 +228,7 @@ version: '2'
 
 services:
   stats:
-    image: 569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/rabbitmq:latest
+    image: ghcr.io/mindw/odd_images/rabbitmq:latest
     environment:
       - RABBITMQ_NODE_TYPE=stats
       - RABBITMQ_NODE_NAME=rabbit@stats
@@ -265,7 +247,7 @@ Update the definitions for nodes you want your RabbitMQ stats node cluster with.
 
 ```yaml
   queue-disc1:
-    image: 569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/rabbitmq:latest
+    image: ghcr.io/mindw/odd_images/rabbitmq:latest
     environment:
       - RABBITMQ_NODE_TYPE=queue-disc
       - RABBITMQ_NODE_NAME=rabbit@queue-disc1
@@ -281,7 +263,7 @@ We are going to add a ram node too:
 
 ```yaml
   queue-ram1:
-    image: 569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/rabbitmq:latest
+    image: ghcr.io/mindw/odd_images/rabbitmq:latest
     environment:
       - RABBITMQ_NODE_TYPE=queue-ram
       - RABBITMQ_NODE_NAME=rabbit@queue-ram1
@@ -310,7 +292,7 @@ version: '2'
 
 services:
   stats:
-    image: 569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/rabbitmq:latest
+    image: ghcr.io/mindw/odd_images/rabbitmq:latest
     environment:
       - RABBITMQ_NODE_TYPE=stats
       - RABBITMQ_NODE_NAME=rabbit@stats
@@ -320,7 +302,7 @@ services:
     volumes:
       - rabbitmqstats_data:/bitnami/rabbitmq/mnesia
   queue-disc1:
-    image: 569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/rabbitmq:latest
+    image: ghcr.io/mindw/odd_images/rabbitmq:latest
     environment:
       - RABBITMQ_NODE_TYPE=queue-disc
       - RABBITMQ_NODE_NAME=rabbit@queue-disc1
@@ -329,7 +311,7 @@ services:
     volumes:
       - rabbitmqdisc1_data:/bitnami/rabbitmq/mnesia
   queue-ram1:
-    image: 569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/rabbitmq:latest
+    image: ghcr.io/mindw/odd_images/rabbitmq:latest
     environment:
       - RABBITMQ_NODE_TYPE=queue-ram
       - RABBITMQ_NODE_NAME=rabbit@queue-ram1
@@ -364,7 +346,7 @@ listeners.tcp.default=1337
 ```console
 docker run -d --name rabbitmq-server \
    -v /path/to/custom.conf:/bitnami/rabbitmq/conf/custom.conf:ro \
-    569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/rabbitmq:latest
+    ghcr.io/mindw/odd_images/rabbitmq:latest
 ```
 
 After that, your changes will be taken into account in the server's behaviour.
@@ -435,7 +417,7 @@ docker run --name rabbitmq \
   --env RABBITMQ_LDAP_USER_DN_PATTERN=cn=$${username},ou=users,dc=example,dc=org \
   --network app-tier \
   -v /path/to/your/advanced.config:/bitnami/rabbitmq/conf/advanced.config:ro \
-  569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/rabbitmq:latest
+  ghcr.io/mindw/odd_images/rabbitmq:latest
 ```
 
 ## Logging
@@ -463,7 +445,7 @@ Bitnami provides up-to-date versions of RabbitMQ, including security patches, so
 #### Step 1: Get the updated image
 
 ```console
-docker pull 569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/rabbitmq:latest
+docker pull ghcr.io/mindw/odd_images/rabbitmq:latest
 ```
 
 or if you're using Docker Compose, update the value of the image property to
@@ -506,7 +488,7 @@ docker-compose rm -v rabbitmq
 Re-create your container from the new image.
 
 ```console
-docker run --name rabbitmq 569129334545.dkr.ecr.us-east-1.amazonaws.com/bitnami/rabbitmq:latest
+docker run --name rabbitmq ghcr.io/mindw/odd_images/rabbitmq:latest
 ```
 
 or using Docker Compose:

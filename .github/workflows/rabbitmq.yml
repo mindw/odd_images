@@ -1,0 +1,96 @@
+name: rabbitmq
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "images/rabbitmq/**"
+      - ".github/workflows/rabbitmq.yml"
+  pull_request:
+    paths:
+      - "images/rabbitmq/**"
+      - ".github/workflows/rabbitmq.yml"
+
+concurrency:
+  group: rabbitmq-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Resolve version and tags
+        id: version
+        run: |
+          source images/rabbitmq/current/debian-12/version.sh
+          IMAGE="ghcr.io/${{ github.repository }}/rabbitmq"
+          MAJOR_MINOR="${RABBITMQ_APP_VERSION%.*}"
+          {
+            echo "tags<<EOF"
+            echo "${IMAGE}:${RABBITMQ_VERSION}"
+            echo "${IMAGE}:v${RABBITMQ_APP_VERSION}"
+            echo "${IMAGE}:v${MAJOR_MINOR}"
+            echo "${IMAGE}:latest"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build amd64 image for smoke test
+        uses: docker/build-push-action@v6
+        with:
+          context: images/rabbitmq/current/debian-12
+          platforms: linux/amd64
+          load: true
+          tags: rabbitmq-smoke-test:local
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke test
+        run: |
+          docker run -d --name rabbitmq-smoke rabbitmq-smoke-test:local
+          success=false
+          for i in $(seq 1 60); do
+            if docker exec rabbitmq-smoke rabbitmq-diagnostics -q --timeout 10 ping; then
+              echo "RabbitMQ responded to ping"
+              success=true
+              break
+            fi
+            sleep 2
+          done
+          if [ "$success" != "true" ]; then
+            docker logs rabbitmq-smoke
+            docker rm -f rabbitmq-smoke
+            exit 1
+          fi
+          docker rm -f rabbitmq-smoke
+
+      - name: Log in to GHCR
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: images/rabbitmq/current/debian-12
+          provenance: false
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name == 'push' }}
+          tags: ${{ steps.version.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
