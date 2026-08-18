@@ -5,10 +5,19 @@
 [Overview of Redis&reg; Cluster](https://redis.io)
 Disclaimer: Redis is a registered trademark of Redis Ltd. Any rights therein are reserved to Redis Ltd. Any use by Bitnami is for referential purposes only and does not indicate any sponsorship, endorsement, or affiliation between Redis Ltd.
 
+## Engageli notes
+
+### Updating to a new version:
+
+1. Pull image changes from [upstream](https://github.com/bitnami/containers/tree/main/bitnami/redis-cluster)
+2. Bump `current/debian-12/Dockerfile` to the new version
+3. Open a pull request — the `redis-cluster` GitHub Actions workflow builds the image for `linux/amd64` and `linux/arm64` and runs a smoke test to confirm it still starts. No image is pushed for pull requests.
+4. Once the PR is merged to `main`, the same workflow builds, smoke-tests, and pushes the image to GHCR, tagged as `VERSION`, `vAPP_VERSION`, `vMAJOR.MINOR`, and `latest` in one step.
+
 ## TL;DR
 
 ```console
-docker run --name redis-cluster -e ALLOW_EMPTY_PASSWORD=yes bitnami/redis-cluster:latest
+docker run --name redis-cluster -e ALLOW_EMPTY_PASSWORD=yes ghcr.io/mindw/odd_images/redis-cluster:latest
 ```
 
 ## Using `docker-compose.yml`
@@ -46,7 +55,18 @@ Learn more about the Bitnami tagging policy and the difference between rolling t
 
 ## Get this image
 
-The Bitnami Redis&reg; Cluster Docker image is only available to [Bitnami Secure Images](https://bitnami.com) customers.
+The recommended way to get the Redis Cluster Docker image is to pull the prebuilt image
+from the Engageli GitHub Container Registry.
+
+```console
+docker pull ghcr.io/mindw/odd_images/redis-cluster:latest
+```
+To use a specific version, you can pull a versioned tag. You can view the list of
+available versions on the [package page](https://github.com/mindw/odd_images/pkgs/container/odd_images%2Fredis-cluster).
+
+```console
+docker pull ghcr.io/mindw/odd_images/redis-cluster:[TAG]
+```
 
 ## Persisting your application
 
