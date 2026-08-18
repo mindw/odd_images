@@ -60,14 +60,20 @@ jobs:
       - name: Smoke test
         run: |
           docker run -d --name redis-sentinel-smoke -e ALLOW_EMPTY_PASSWORD=yes -e REDIS_MASTER_HOST=redis redis-sentinel-smoke-test:local
+          success=false
           for i in $(seq 1 30); do
             if docker exec redis-sentinel-smoke redis-cli -p 26379 ping 2>/dev/null | grep -q PONG; then
               echo "Redis Sentinel responded to ping"
+              success=true
               break
             fi
             sleep 1
           done
-          docker exec redis-sentinel-smoke redis-cli -p 26379 ping | grep -q PONG
+          if [ "$success" != "true" ]; then
+            docker logs redis-sentinel-smoke
+            docker rm -f redis-sentinel-smoke
+            exit 1
+          fi
           docker rm -f redis-sentinel-smoke
 
       - name: Log in to GHCR
