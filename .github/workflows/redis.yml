@@ -60,14 +60,20 @@ jobs:
       - name: Smoke test
         run: |
           docker run -d --name redis-smoke -e ALLOW_EMPTY_PASSWORD=yes redis-smoke-test:local
+          success=false
           for i in $(seq 1 30); do
             if docker exec redis-smoke redis-cli ping 2>/dev/null | grep -q PONG; then
               echo "Redis responded to ping"
+              success=true
               break
             fi
             sleep 1
           done
-          docker exec redis-smoke redis-cli ping | grep -q PONG
+          if [ "$success" != "true" ]; then
+            docker logs redis-smoke
+            docker rm -f redis-smoke
+            exit 1
+          fi
           docker rm -f redis-smoke
 
       - name: Log in to GHCR
