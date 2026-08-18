@@ -60,14 +60,20 @@ jobs:
       - name: Smoke test
         run: |
           docker run -d --name rabbitmq-smoke rabbitmq-smoke-test:local
+          success=false
           for i in $(seq 1 60); do
-            if docker exec rabbitmq-smoke rabbitmq-diagnostics -q ping; then
+            if docker exec rabbitmq-smoke rabbitmq-diagnostics -q --timeout 10 ping; then
               echo "RabbitMQ responded to ping"
+              success=true
               break
             fi
             sleep 2
           done
-          docker exec rabbitmq-smoke rabbitmq-diagnostics -q ping
+          if [ "$success" != "true" ]; then
+            docker logs rabbitmq-smoke
+            docker rm -f rabbitmq-smoke
+            exit 1
+          fi
           docker rm -f rabbitmq-smoke
 
       - name: Log in to GHCR

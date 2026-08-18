@@ -60,16 +60,42 @@ successfully with zero env vars set. The image's own healthcheck script
 - name: Smoke test
   run: |
     docker run -d --name rabbitmq-smoke rabbitmq-smoke-test:local
+    success=false
     for i in $(seq 1 60); do
-      if docker exec rabbitmq-smoke rabbitmq-diagnostics -q ping; then
+      if docker exec rabbitmq-smoke rabbitmq-diagnostics -q --timeout 10 ping; then
         echo "RabbitMQ responded to ping"
+        success=true
         break
       fi
       sleep 2
     done
-    docker exec rabbitmq-smoke rabbitmq-diagnostics -q ping
+    if [ "$success" != "true" ]; then
+      docker logs rabbitmq-smoke
+      docker rm -f rabbitmq-smoke
+      exit 1
+    fi
     docker rm -f rabbitmq-smoke
 ```
+
+### Post-review correction: dropped the redundant trailing ping
+
+The initial implementation (matching the `redis`/`redis-sentinel` template
+verbatim) re-ran `rabbitmq-diagnostics -q ping` a second time,
+unconditionally, right after the polling loop broke on success — treated
+as a harmless cosmetic duplicate in per-task and final review. The real
+PR run on GitHub's hosted runner proved otherwise: the loop's ping
+succeeded on iteration 2, but the very next line's independent re-ping
+failed 0.7s later (`Failed to connect and authenticate to rabbit@localhost
+in 60000 ms`), failing the whole step under `bash -e`. Requiring two
+separate connections to a freshly-booted Erlang/Mnesia node to both
+succeed, a second apart, is inherently flaky — a transient window right
+after boot can pass one connection attempt and reject the next. The fix
+tracks loop success with a flag instead of re-asserting it, adds a
+`--timeout 10` bound to keep each attempt fast, and dumps `docker logs` on
+failure so a real crash is diagnosable in CI output, not just via local
+reproduction. The same redundant-trailing-ping pattern still exists,
+unfixed, in the merged `redis`/`redis-sentinel` workflows — it didn't
+misfire there, but the same latent flake risk applies.
 
 60 iterations × 2s (up to 2 minutes) rather than `redis`'s 30×1s, since
 Erlang/Mnesia boot is slower than Redis's. `rabbitmq-diagnostics -q ping`
