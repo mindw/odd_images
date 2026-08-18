@@ -1,0 +1,96 @@
+name: redis-cluster
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "images/redis-cluster/**"
+      - ".github/workflows/redis-cluster.yml"
+  pull_request:
+    paths:
+      - "images/redis-cluster/**"
+      - ".github/workflows/redis-cluster.yml"
+
+concurrency:
+  group: redis-cluster-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Resolve version and tags
+        id: version
+        run: |
+          source images/redis-cluster/current/debian-12/version.sh
+          IMAGE="ghcr.io/${{ github.repository }}/redis-cluster"
+          MAJOR_MINOR="${REDIS_CLUSTER_APP_VERSION%.*}"
+          {
+            echo "tags<<EOF"
+            echo "${IMAGE}:${REDIS_CLUSTER_VERSION}"
+            echo "${IMAGE}:v${REDIS_CLUSTER_APP_VERSION}"
+            echo "${IMAGE}:v${MAJOR_MINOR}"
+            echo "${IMAGE}:latest"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build amd64 image for smoke test
+        uses: docker/build-push-action@v6
+        with:
+          context: images/redis-cluster/current/debian-12
+          platforms: linux/amd64
+          load: true
+          tags: redis-cluster-smoke-test:local
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke test
+        run: |
+          docker run -d --name redis-cluster-smoke -e ALLOW_EMPTY_PASSWORD=yes -e REDIS_NODES=127.0.0.1 redis-cluster-smoke-test:local
+          success=false
+          for i in $(seq 1 30); do
+            if docker exec redis-cluster-smoke redis-cli ping 2>/dev/null | grep -q PONG; then
+              echo "Redis Cluster responded to ping"
+              success=true
+              break
+            fi
+            sleep 1
+          done
+          if [ "$success" != "true" ]; then
+            docker logs redis-cluster-smoke
+            docker rm -f redis-cluster-smoke
+            exit 1
+          fi
+          docker rm -f redis-cluster-smoke
+
+      - name: Log in to GHCR
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: images/redis-cluster/current/debian-12
+          provenance: false
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name == 'push' }}
+          tags: ${{ steps.version.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
