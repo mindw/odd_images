@@ -7,9 +7,7 @@ Trademarks: This software listing is packaged by Bitnami. The respective tradema
 mentioned in the offering are owned by the respective companies, and use of them does
 not imply any affiliation or endorsement.
 
-## Engageli notes
-
-### Updating to a new version:
+## Updating to a new version:
 
 1. Pull image changes from [upstream](https://github.com/bitnami/containers/tree/main/bitnami/os-shell)
 2. Bump `current/debian-12/Dockerfile` to the new version

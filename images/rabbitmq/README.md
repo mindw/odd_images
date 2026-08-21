@@ -1,15 +1,11 @@
 # Bitnami Secure Image for RabbitMQ
 
-## What is RabbitMQ?
-
 > RabbitMQ is an open source general-purpose message broker that is designed for consistent, highly-available messaging scenarios (both synchronous and asynchronous).
 
 [Overview of RabbitMQ](https://www.rabbitmq.com)
 Trademarks: This software listing is packaged by Bitnami. The respective trademarks mentioned in the offering are owned by the respective companies, and use of them does not imply any affiliation or endorsement.
 
-## Engageli notes
-
-### Updating to a new version:
+## Updating to a new version:
 
 1. Pull image changes from [upstream](https://github.com/bitnami/containers/tree/main/bitnami/rabbitmq)
 2. Backup image source files using: `AWS_PROFILE=shared_assets ./copy-image-sources-s3.sh`
@@ -152,6 +148,8 @@ The following tables list the main variables you can set.
 | `RABBITMQ_VHOSTS`                              | List of additional virtual host (vhost). Default queue type can be set using colon separator (RABBITMQ_VHOSTS=queue_name_0 queue_name_1:quorum)                                                  | `nil`                                |
 | `RABBITMQ_CLUSTER_REBALANCE`                   | Rebalance the RabbitMQ Cluster.                                                                                                                                                                  | `false`                              |
 | `RABBITMQ_CLUSTER_REBALANCE_ATTEMPTS`          | Max attempts for the rebalance check to run                                                                                                                                                      | `100`                                |
+| `RABBITMQ_COMMUNITY_PLUGINS`                   | Comma, semi-colon or space separated list of plugins to install during bootstrap.                                                                                                                | `nil`                                |
+| `RABBITMQ_COMMUNITY_PLUGINS_SECURE`            | Force secure installation for community plugins.                                                                                                                                                 | `yes`                                |
 | `RABBITMQ_USERNAME`                            | RabbitMQ user name.                                                                                                                                                                              | `user`                               |
 | `RABBITMQ_PASSWORD`                            | RabbitMQ user password.                                                                                                                                                                          | `bitnami`                            |
 | `RABBITMQ_FORCE_BOOT`                          | Force a node to start even if it was not the last to shut down                                                                                                                                   | `no`                                 |

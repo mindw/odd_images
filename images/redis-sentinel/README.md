@@ -5,9 +5,7 @@
 [Overview of Redis&reg; Sentinel](https://redis.io)
 Disclaimer: Redis is a registered trademark of Redis Ltd. Any rights therein are reserved to Redis Ltd. Any use by Bitnami is for referential purposes only and does not indicate any sponsorship, endorsement, or affiliation between Redis Ltd.
 
-## Engageli notes
-
-### Updating to a new version:
+## Updating to a new version:
 
 1. Pull image changes from [upstream](https://github.com/bitnami/containers/tree/main/bitnami/redis-sentinel)
 2. Bump `current/debian-12/Dockerfile` to the new version
