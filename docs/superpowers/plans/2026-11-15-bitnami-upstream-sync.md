@@ -114,8 +114,10 @@ Only in images/redis-sentinel/current/debian-12: version.sh
 REDIS_SENTINEL_VERSION=v8.10.3-debian-12-r1
 redis line: 8.10
 rabbitmq line: 4.3
-22
+24
 ```
+
+(24 checksum files in total: the 22 replaced ones plus rabbitmq's two unchanged Erlang checksums.)
 
 - [ ] **Step 6: Confirm no stray file changed**
 
