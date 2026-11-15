@@ -8,10 +8,9 @@ Trademarks: This software listing is packaged by Bitnami. The respective tradema
 ## Updating to a new version:
 
 1. Pull image changes from [upstream](https://github.com/bitnami/containers/tree/main/bitnami/rabbitmq)
-2. Backup image source files using: `AWS_PROFILE=shared_assets ./copy-image-sources-s3.sh`
-3. Bump `current/debian-12/Dockerfile` to the new version
-4. Open a pull request — the `rabbitmq` GitHub Actions workflow builds the image for `linux/amd64` and `linux/arm64` and runs a smoke test to confirm it still starts. No image is pushed for pull requests.
-5. Once the PR is merged to `main`, the same workflow builds, smoke-tests, and pushes the image to GHCR, tagged as `VERSION`, `vAPP_VERSION`, `vMAJOR.MINOR`, and `latest` in one step.
+2. Bump `current/debian-12/Dockerfile` to the new version
+3. Open a pull request — the `rabbitmq` GitHub Actions workflow builds the image for `linux/amd64` and `linux/arm64` and runs a smoke test to confirm it still starts. No image is pushed for pull requests.
+4. Once the PR is merged to `main`, the same workflow builds, smoke-tests, and pushes the image to GHCR, tagged as `VERSION`, `vAPP_VERSION`, `vMAJOR.MINOR`, and `latest` in one step.
 
 ## TL;DR
 

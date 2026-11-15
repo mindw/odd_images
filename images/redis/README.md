@@ -8,10 +8,9 @@ Disclaimer: Redis is a registered trademark of Redis Ltd. Any rights therein are
 ## Updating to a new version:
 
 1. Pull image changes from [upstream](https://github.com/bitnami/containers/tree/main/bitnami/redis)
-2. Backup image source files using: `AWS_PROFILE=shared_assets ./copy-image-sources-s3.sh`
-3. Bump `current/debian-12/Dockerfile` to the new version
-4. Open a pull request — the `redis` GitHub Actions workflow builds the image for `linux/amd64` and `linux/arm64` to confirm it still builds. No image is pushed for pull requests.
-5. Once the PR is merged to `main`, the same workflow builds and pushes the image to GHCR, tagged as `VERSION`, `vAPP_VERSION`, `vMAJOR.MINOR`, and `latest` in one step. No manual promotion or dev/prod propagation is needed.
+2. Bump `current/debian-12/Dockerfile` to the new version
+3. Open a pull request — the `redis` GitHub Actions workflow builds the image for `linux/amd64` and `linux/arm64` to confirm it still builds. No image is pushed for pull requests.
+4. Once the PR is merged to `main`, the same workflow builds and pushes the image to GHCR, tagged as `VERSION`, `vAPP_VERSION`, `vMAJOR.MINOR`, and `latest` in one step. No manual promotion or dev/prod propagation is needed.
 
 ## TL;DR
 
@@ -100,6 +99,7 @@ The following tables list the main variables you can set.
 | `REDIS_SENTINEL_MASTER_NAME`     | Redis Sentinel master name                       | `nil`                                      |
 | `REDIS_SENTINEL_HOST`            | Redis Sentinel host                              | `nil`                                      |
 | `REDIS_SENTINEL_PORT_NUMBER`     | Redis Sentinel host port (used by slaves)        | `26379`                                    |
+| `REDIS_SENTINEL_PASSWORD`        | Redis Sentinel password                          | `nil`                                      |
 
 #### Read-only environment variables
 
